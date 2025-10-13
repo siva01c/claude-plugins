@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "drupal-dev-tools",
-      "source": "./drupal-dev-tools",
+      "source": "git+https://github.com/siva01c/claude-plugins.git#main:drupal-dev-tools",
       "description": "Drupal dev tools",
       "version": "2.1.0",
       "author": {
