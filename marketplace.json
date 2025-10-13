@@ -1,0 +1,23 @@
+{
+  "name": "dev-tools",
+  "owner": {
+    "name": "siva01",
+    "email": "kvapilludek@gmail.com"
+  },
+  "metadata": {
+    "description": "A collection of developer tools for various programming languages and frameworks.",
+    "categories": ["Development", "Productivity"],
+    "tags": ["dev-tools", "programming", "frameworks", "languages"]
+  },
+  "plugins": [
+    {
+      "name": "drupal-dev-tools",
+      "source": "./drupal-dev-tools",
+      "description": "Drupal dev tools",
+      "version": "2.1.0",
+      "author": {
+        "name": "DevTools Team"
+      }
+    }
+  ]
+}
