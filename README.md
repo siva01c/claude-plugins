@@ -73,7 +73,7 @@ Check that the plugin is installed:
 Once installed, you can run comprehensive Drupal code audits:
 
 ```
-/drupal
+/drupal-dev-tools:drupal
 ```
 
 This will analyze your Drupal project and provide a structured report covering:
@@ -143,10 +143,6 @@ For more information about Claude Code plugins:
 
 This project is open source. Please check individual plugin directories for specific licenses.
 
-## Author
-
-**Ludek Kvapil (siva01)**
-Email: kvapilludek@gmail.com
 
 ## Support
 
