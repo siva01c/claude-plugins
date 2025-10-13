@@ -14,7 +14,7 @@ A curated collection of developer tools and plugins for [Claude Code](https://cl
 **Description:** Comprehensive Drupal 11 development toolkit with DDEV integration
 
 #### Features:
-- **Slash Command: `/drupal`** - Performs comprehensive Drupal 11 code audit and security analysis
+- **Slash Command: `/drupal-dev-tools:drupal`** - Performs comprehensive Drupal 11 code audit and security analysis
   - Verifies Drupal 11 coding standards compliance
   - Checks for security vulnerabilities (SQL injection, XSS, unsafe input handling)
   - Reviews code quality and design patterns (SOLID, DRY principles)
@@ -68,7 +68,7 @@ Check that the plugin is installed:
 
 ### Drupal Dev Tools
 
-#### Using the `/drupal` Command
+#### Using the `/drupal-dev-tools:drupal-ddev` Command
 
 Once installed, you can run comprehensive Drupal code audits:
 
