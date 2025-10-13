@@ -35,7 +35,7 @@ A curated collection of developer tools and plugins for [Claude Code](https://cl
 In Claude Code, run the following command to add this plugin marketplace:
 
 ```
-/plugin marketplace add https://raw.githubusercontent.com/siva01c/claude-plugins/main/marketplace.json
+/plugin marketplace add siva01c/claude-plugins
 ```
 
 ### Step 2: List Available Plugins
@@ -101,7 +101,8 @@ This repository follows the Claude Code plugin marketplace structure:
 
 ```
 claude-plugins/
-├── marketplace.json           # Marketplace definition
+├── .claude-plugin/
+│   └── marketplace.json      # Marketplace definition
 └── drupal-dev-tools/         # Plugin directory
     ├── .claude-plugin/
     │   └── plugin.json       # Plugin metadata
@@ -120,7 +121,7 @@ Contributions are welcome! To add a new plugin:
    - `.claude-plugin/plugin.json` - Plugin metadata
    - `commands/` - Slash command definitions (optional)
    - `agents/` - Agent definitions (optional)
-3. Update `marketplace.json` to include your plugin
+3. Update `.claude-plugin/marketplace.json` to include your plugin
 4. Submit a pull request
 
 ### Plugin Requirements
