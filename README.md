@@ -10,7 +10,7 @@ A curated collection of developer tools and plugins for [Claude Code](https://cl
 
 ### Drupal Dev Tools
 
-**Version:** 2.1.0
+**Version:** 2.2.0
 **Description:** Comprehensive Drupal 11 development toolkit with DDEV integration
 
 #### Features:
@@ -27,6 +27,11 @@ A curated collection of developer tools and plugins for [Claude Code](https://cl
   - Database operations (import, export, updates)
   - Cache management and performance optimization
   - Development workflows and best practices
+
+- **Skills bundle (`drupal-dev-tools/skills/*.SKILL.md`)** - Reusable Drupal 11 workflows
+  - Module development skill
+  - Security review skill
+  - DDEV operations skill
 
 ## Installation
 
@@ -108,8 +113,12 @@ claude-plugins/
     │   └── plugin.json       # Plugin metadata
     ├── commands/
     │   └── drupal.md         # Slash command definition
-    └── agents/
-        └── drupal-ddev.md    # Agent definition
+    ├── agents/
+    │   └── drupal-ddev.md    # Agent definition
+    └── skills/
+        ├── drupal-module-development.SKILL.md
+        ├── drupal-security-review.SKILL.md
+        └── drupal-ddev-operations.SKILL.md
 ```
 
 ## Contributing
@@ -152,7 +161,12 @@ If you encounter any issues or have questions:
 
 ## Changelog
 
-### Version 2.1.0 (Latest)
+### Version 2.2.0 (Latest)
+- Added Drupal-focused reusable skills bundle (`*.SKILL.md`)
+- Updated plugin metadata and marketplace entry
+- Kept existing audit command and DDEV agent workflows
+
+### Version 2.1.0
 - Enhanced Drupal 11 development tools
 - Added comprehensive code audit command
 - Improved DDEV agent with detailed workflows
