@@ -28,7 +28,7 @@ A curated collection of developer tools and plugins for [Claude Code](https://cl
   - Cache management and performance optimization
   - Development workflows and best practices
 
-- **Skills bundle (`drupal-dev-tools/skills/*.SKILL.md`)** - Reusable Drupal 11 workflows
+- **Skills bundle (`drupal-dev-tools/skills/*/SKILL.md`)** - Reusable Drupal 11 workflows
   - Module development skill
   - Security review skill
   - DDEV operations skill
@@ -116,9 +116,13 @@ claude-plugins/
     ├── agents/
     │   └── drupal-ddev.md    # Agent definition
     └── skills/
-        ├── drupal-module-development.SKILL.md
-        ├── drupal-security-review.SKILL.md
-        └── drupal-ddev-operations.SKILL.md
+        ├── drupal-module-development/
+        │   └── SKILL.md
+        ├── drupal-security-review/
+        │   └── SKILL.md
+        └── drupal-ddev-operations/
+            └── SKILL.md
+
 ```
 
 ## Contributing
