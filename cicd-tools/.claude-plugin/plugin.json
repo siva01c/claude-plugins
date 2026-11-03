@@ -1,7 +1,7 @@
 {
   "name": "cicd-tools",
-  "description": "CI/CD pipeline skills for Drupal projects — GitLab CI and GitHub Actions authoring, testing, and drush-based deployment",
-  "version": "1.0.0",
+  "description": "CI/CD pipeline skills for Drupal projects — GitLab CI and GitHub Actions authoring, testing, Semgrep SAST with SARIF, and drush-based deployment",
+  "version": "1.1.0",
   "author": {
     "name": "Ludek Kvapil - siva01"
   }

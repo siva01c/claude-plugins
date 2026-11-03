@@ -107,6 +107,37 @@ phpunit:
 
 `services:` starts sidecar containers (database, redis) reachable by alias.
 
+### Semgrep SAST with SARIF
+
+```yaml
+semgrep:
+  stage: test
+  image: semgrep/semgrep
+  variables:
+    SEMGREP_CONFIGS: >-
+      --config p/php --config p/owasp-top-ten --config p/secrets
+      --config .semgrep/drupal.yml --config .semgrep/drupal-routing.yml
+  script:
+    - semgrep scan --metrics=off $SEMGREP_CONFIGS
+        --sarif-output=semgrep.sarif
+        --gitlab-sast-output=gl-sast-report.json
+        web/modules/custom web/themes/custom
+  artifacts:
+    when: always
+    paths: [semgrep.sarif]       # SARIF for other tools and for download
+    reports:
+      sast: gl-sast-report.json  # findings in the MR security widget
+```
+
+- GitLab's MR widget reads its own SAST format, not SARIF:
+  `--gitlab-sast-output` writes it next to the SARIF file in the same run.
+  Older Semgrep versions without the `--<format>-output` options take one
+  format per run (`--sarif --output …`) — run the scan twice there.
+- Copy the custom Drupal rules (the `security-tools` `semgrep` skill's
+  `rules/drupal.yml` and `rules/drupal-routing.yml`) into the project, here
+  `.semgrep/`.
+- Add `--error` to fail the job on findings.
+
 ---
 
 ## Deploying with drush

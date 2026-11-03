@@ -36,6 +36,7 @@ Perform a full audit of all **custom themes and modules** in the project. Provid
   * Unsafe use of `$_GET`, `$_POST`, or `$_REQUEST`
 * Check for proper **input sanitization** and **output escaping**.
 * Identify **abandoned debug functions** (e.g., `var_dump()`, `dpm()`, `kint()`, `watchdog()` used incorrectly).
+* **Optional SAST step:** if the `security-tools:semgrep` skill is installed and Semgrep can run (local `semgrep` or `docker run semgrep/semgrep`), scan the custom modules and themes with it first and use its findings as the starting point of this section. Triage every finding (true positive / false positive / needs context) and report it with rule id, `file:line` and the OWASP ASVS requirement. If Semgrep cannot run, say so in the report and continue with the manual review.
 
 ### 4. Code Duplication
 
@@ -46,7 +47,7 @@ Perform a full audit of all **custom themes and modules** in the project. Provid
 Provide a structured analysis with the following sections:
 
 * Compliance with Drupal 11 standards
-* Found vulnerabilities and security risks
+* Found vulnerabilities and security risks (Semgrep findings with their triage verdict, when the scan ran)
 * Design and dependency injection issues
 * Code duplication summary
 * Recommendations for refactoring

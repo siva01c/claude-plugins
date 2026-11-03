@@ -1,7 +1,7 @@
 {
   "name": "workflow-tools",
   "description": "Phased development workflows for Drupal projects — feature delivery, deployment, and tiny fixes with rigor scaled to risk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Ludek Kvapil - siva01"
   }

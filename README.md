@@ -10,20 +10,20 @@ A curated collection of [Claude Code](https://claude.com/claude-code) plugins fo
 
 | Plugin | Version | Contents |
 |---|---|---|
-| [drupal-dev-tools](drupal-dev-tools/) | 4.0.0 | `/drupal-dev-tools:drupal` audit command, skills: module development, security review |
+| [drupal-dev-tools](drupal-dev-tools/) | 4.1.0 | `/drupal-dev-tools:drupal` audit command, skills: module development, security review |
 | [ddev-tools](ddev-tools/) | 1.0.0 | `drupal-ddev` agent, skill: DDEV operations for Drupal projects |
 | [git-tools](git-tools/) | 1.0.0 | Skill: git worktrees for parallel, conflict-free work |
-| [security-tools](security-tools/) | 1.0.0 | Skill: OWASP ASVS v5.0 checklist mapped to Drupal 11 APIs |
+| [security-tools](security-tools/) | 1.1.0 | Skills: OWASP ASVS v5.0 checklist mapped to Drupal 11 APIs, Semgrep SAST with custom Drupal rules |
 | [docker-tools](docker-tools/) | 1.0.0 | Skills: Docker Compose for Drupal stacks, Docker Model Runner for local AI models |
-| [cicd-tools](cicd-tools/) | 1.0.0 | Skills: GitLab CI and GitHub Actions pipelines for Drupal projects |
-| [workflow-tools](workflow-tools/) | 1.0.0 | Skills: phased feature/deploy workflows and a tiny-fix path, rigor scaled to risk |
+| [cicd-tools](cicd-tools/) | 1.1.0 | Skills: GitLab CI and GitHub Actions pipelines for Drupal projects |
+| [workflow-tools](workflow-tools/) | 1.1.0 | Skills: phased feature/deploy workflows and a tiny-fix path, rigor scaled to risk |
 | [quality-tools](quality-tools/) | 1.0.0 | Skills: SOLID and DRY design review rules |
 
 ### drupal-dev-tools
 
 Comprehensive Drupal 11 toolkit:
 
-- **Slash command `/drupal-dev-tools:drupal`** — full code audit of custom themes and modules: Drupal 11 standards, security (SQL injection, XSS, unsafe input), SOLID/DRY design review, duplication, refactoring recommendations.
+- **Slash command `/drupal-dev-tools:drupal`** — full code audit of custom themes and modules: Drupal 11 standards, security (SQL injection, XSS, unsafe input), SOLID/DRY design review, duplication, refactoring recommendations. Starts the security section from a Semgrep scan when `security-tools` is installed and Semgrep can run.
 - **Skills** — `drupal-module-development`, `drupal-security-review`.
 
 ### ddev-tools
@@ -40,6 +40,7 @@ DDEV is a multiplatform local development environment (built on Docker), so it h
 ### security-tools
 
 - **`owasp-asvs`** — OWASP ASVS v5.0 verification checklist (V1–V14) with every requirement mapped to Drupal 11 APIs (`Xss::filter()`, Query Builder, Flood control, Key module…), critical security patterns in PHP, red-flags table, and recommended Drupal security modules.
+- **`semgrep`** — Semgrep as the deterministic SAST layer under a security review: runs through a local `semgrep` or `docker run semgrep/semgrep` (no global install) with `p/php`, `p/owasp-top-ten`, `p/secrets` and custom Drupal rules (SQL injection in `query()`/`db_query()`, XSS through `#markup` and `Markup::create()`, superglobals, `\Drupal::` in DI classes, debug leftovers, routes without access checks). Every custom rule maps to an ASVS requirement and has a `ruleid:`/`ok:` fixture for `semgrep --test`; every finding is reported with rule id, `file:line`, ASVS and a triage verdict.
 
 ### docker-tools
 
@@ -50,12 +51,13 @@ DDEV is a multiplatform local development environment (built on Docker), so it h
 
 - **`gitlab-ci`** — `.gitlab-ci.yml` authoring for Drupal: composer caching, phpcs/phpstan/phpunit jobs with a MariaDB service, `rules:`, environments, and drush-based deployment.
 - **`github-actions`** — workflows for Drupal: least-privilege permissions, concurrency, matrix PHP builds, database services, reusable workflows, and SSH/drush deployment.
+- Both include a Semgrep SAST job with SARIF output (code scanning upload on GitHub, SARIF artifact plus the MR security widget on GitLab).
 
 ### workflow-tools
 
 Phased development workflows that orchestrate the other plugins' skills, with rigor scaled to the risk of the task:
 
-- **`feature-workflow`** — gated plan → implement → review → test → finalize procedure for non-trivial Drupal changes. Classifies the task first (standard / security-sensitive / schema-touching) and adds a mandatory security pass or update-hook requirement accordingly. Uses `drupal-module-development`, the `/drupal-dev-tools:drupal` audit, and `owasp-asvs` when those plugins are installed, with documented manual fallbacks when they are not.
+- **`feature-workflow`** — gated plan → implement → review → test → finalize procedure for non-trivial Drupal changes. Classifies the task first (standard / security-sensitive / schema-touching) and adds a mandatory security pass or update-hook requirement accordingly. Uses `drupal-module-development`, the `/drupal-dev-tools:drupal` audit, an optional `semgrep` scan in Phase 3, and `owasp-asvs` when those plugins are installed, with documented manual fallbacks when they are not.
 - **`deploy-workflow`** — safe deployment sequence: pre-flight config-status check, mandatory backup, `composer install` → `drush updb` → `drush cim` → `drush cr` (or `drush deploy`), post-deploy verification, and a rollback plan. Covers per-site update passes for multisite releases.
 - **`tiny-fix`** — deliberately minimal path for typos, CSS tweaks, and single-line changes, with an escalation tripwire to `feature-workflow` the moment a change touches logic, config, security, or schema.
 
@@ -214,7 +216,11 @@ claude-plugins/
 │   └── skills/git-worktree/SKILL.md
 ├── security-tools/
 │   ├── .claude-plugin/plugin.json
-│   └── skills/owasp-asvs/SKILL.md
+│   └── skills/
+│       ├── owasp-asvs/SKILL.md
+│       └── semgrep/
+│           ├── SKILL.md
+│           └── rules/            # custom Drupal rules + their test fixtures
 ├── docker-tools/
 │   ├── .claude-plugin/plugin.json
 │   └── skills/
@@ -279,7 +285,13 @@ If you encounter any issues or have questions:
 
 ## Changelog
 
-### 2.2 (Latest)
+### 2.3 (Latest)
+
+- **New `security-tools:semgrep` skill** (security-tools 1.1.0): Semgrep SAST with `p/php`, `p/owasp-top-ten`, `p/secrets` and custom Drupal rules mapped to ASVS, triage verdicts per finding, rule fixtures for `semgrep --test`.
+- Optional Semgrep step in `feature-workflow` Phase 3 (workflow-tools 1.1.0) and in the `/drupal-dev-tools:drupal` audit (drupal-dev-tools 4.1.0).
+- Semgrep SAST jobs with SARIF output in `github-actions` and `gitlab-ci` (cicd-tools 1.1.0).
+
+### 2.2
 
 - **New `quality-tools` plugin:** `solid` and `dry` design review skills — the design half of a code review next to `security-tools:owasp-asvs`.
 
