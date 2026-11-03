@@ -17,7 +17,7 @@ A curated collection of [Claude Code](https://claude.com/claude-code) plugins fo
 | [docker-tools](docker-tools/) | 1.0.0 | Skills: Docker Compose for Drupal stacks, Docker Model Runner for local AI models |
 | [cicd-tools](cicd-tools/) | 1.0.0 | Skills: GitLab CI and GitHub Actions pipelines for Drupal projects |
 | [workflow-tools](workflow-tools/) | 1.0.0 | Skills: phased feature/deploy workflows and a tiny-fix path, rigor scaled to risk |
-| [quality-tools](quality-tools/) | 1.0.0 | Skills: SOLID and DRY design review rules |
+| [quality-tools](quality-tools/) | 1.1.0 | Skills: SOLID and DRY design review rules; hook: phpstan on every edited custom PHP file |
 
 ### drupal-dev-tools
 
@@ -65,6 +65,42 @@ Design review rules that pair with `security-tools:owasp-asvs` in a code review:
 
 - **`solid`** — SRP, OCP, LSP, ISP and DIP as review rules: what counts as a finding (a real cost today or on the next change), what is only taste, severity scale and what each finding must cite.
 - **`dry`** — duplicated *knowledge* (rules, constants, parsers, protocol details) rather than similar-looking text: what to look for, what is not a finding, severity by whether the copies have already drifted.
+- **phpstan hook** — a `PostToolUse` hook (`hooks/hooks.json`, enabled by installing the plugin, no `settings.json` edit) that runs phpstan on each custom Drupal PHP file right after Claude edits it, so a made-up or outdated API call comes back to the agent at once instead of at the end of the task.
+
+#### phpstan hook
+
+**What it checks.** After every `Edit`, `Write` or `MultiEdit` of a `.php`, `.module`, `.install`, `.inc`, `.theme` or `.profile` file under `modules/custom/`, `themes/custom/` or `profiles/custom/` (e.g. `web/modules/custom/…`), it runs
+
+```
+vendor/bin/phpstan analyse --error-format=json <file relative to the project root>
+```
+
+from the project root. Every other edit ends at once with exit 0.
+
+- **No errors** → exit 0, no output.
+- **Errors** → exit 2 and `path:line message` lines on stderr; Claude Code shows them to the agent, which fixes them in its next step.
+- **phpstan not installed** → exit 0 and a one-time hint to the agent (`composer require --dev phpstan/phpstan mglaman/phpstan-drupal phpstan/extension-installer`).
+- **Timeout (30 s), crash, broken config** → exit 0; the hook never blocks the agent over its own environment.
+
+**Project root** is the nearest directory above the file with `.ddev/`, `phpstan.neon(.dist)`, `phpstan.dist.neon`, `vendor/bin/phpstan` or `.git` — a git worktree is its own root, so paths, config and `vendor/` are the worktree's. A worktree without its own `vendor/` gets the "not installed" hint: run `composer install` in it.
+
+**Configuration.** A project `phpstan.neon`, `phpstan.neon.dist` or `phpstan.dist.neon` is used as is (phpstan finds it in the root) — include your baseline there as usual. Without one, the hook writes its bundled default (`hooks/phpstan-default.neon`, level 5) to `vendor/phpstan-hook.neon`, adding `phpstan-baseline.neon` from the project root when it exists, and phpstan-drupal plus the deprecation rules when `phpstan/extension-installer` does not load them already. With phpstan-drupal loaded, `\Drupal::service('entity_type.manager')` resolves to the real service class, so calls on it are checked instead of reported as unknown.
+
+**Baseline.** Errors already listed in the baseline are not reported, so the agent sees only what it introduced. Create one with `vendor/bin/phpstan analyse --generate-baseline` (in DDEV: `ddev exec vendor/bin/phpstan analyse --generate-baseline`).
+
+**Result cache.** phpstan's own result cache stays on, so repeated edits of one file re-analyse only what changed.
+
+**Host or DDEV.**
+
+- *Host:* `vendor/bin/phpstan` runs directly; `php` must be on `PATH`.
+- *DDEV:* when the project root (or a directory above it, for a worktree inside the project) has `.ddev/config.yaml` and `ddev` is on `PATH`, the hook runs `ddev exec --dir /var/www/html[/<worktree>] vendor/bin/phpstan …`, so phpstan uses the container's PHP. The project must be started (`ddev start`); a stopped project ends as an error of the hook, i.e. exit 0.
+- *Claude Code inside the DDEV web container* (`IS_DDEV_PROJECT=true`): phpstan runs directly, as on a host.
+
+**Latency.** The filter for edits the hook does not analyse (a `.css`, `.twig`, contrib or core file) is a Python start with three standard-library imports: measured at 37–48 ms per edit, within the noise of a bare `python3 -c pass` on the same machine (23–47 ms). A phpstan run on one file costs the phpstan start plus the Drupal autoload discovery of phpstan-drupal; the first run fills the result cache, later runs of the same file are faster. Measure it on your project with `time vendor/bin/phpstan analyse --error-format=json <file>` (`ddev exec` adds the container round-trip).
+
+**Turning it off.** `PHPSTAN_HOOK=0` in the environment of Claude Code disables the hook; `PHPSTAN_HOOK_TIMEOUT` changes the 30 s limit.
+
+**Requirements.** `python3` (3.8+) on the host.
 
 ## Installation
 
@@ -233,6 +269,12 @@ claude-plugins/
 │       └── tiny-fix/SKILL.md
 └── quality-tools/
     ├── .claude-plugin/plugin.json
+    ├── hooks/
+    │   ├── hooks.json            # PostToolUse: phpstan on edited custom PHP
+    │   ├── phpstan_hook.py
+    │   ├── phpstan_runner.py
+    │   ├── phpstan-default.neon
+    │   └── tests/
     └── skills/
         ├── solid/SKILL.md
         └── dry/SKILL.md
@@ -279,7 +321,11 @@ If you encounter any issues or have questions:
 
 ## Changelog
 
-### 2.2 (Latest)
+### 2.3 (Latest)
+
+- **`quality-tools` 1.1.0:** phpstan `PostToolUse` hook — every edited custom Drupal PHP file is analysed right away (host or DDEV, baseline-aware, `PHPSTAN_HOOK=0` to disable). `feature-workflow` Phase 3 mentions it.
+
+### 2.2
 
 - **New `quality-tools` plugin:** `solid` and `dry` design review skills — the design half of a code review next to `security-tools:owasp-asvs`.
 

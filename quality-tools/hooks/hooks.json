@@ -1,0 +1,17 @@
+{
+  "description": "Run phpstan on every custom Drupal PHP file right after it is edited",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/phpstan_hook.py\"",
+            "timeout": 45
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -59,6 +59,7 @@ Before starting, classify the task and adjust rigor:
    phpcs --standard=Drupal,DrupalPractice web/modules/custom/MODULE
    phpstan analyse web/modules/custom/MODULE
    ```
+   With the `quality-tools` plugin installed, its phpstan hook already analyses every custom PHP file right after each edit and hands the errors back at once — fix those as they come, in Phase 2. The hook covers only the edited file, so the module-wide run above is still the exit check.
 2. If the `/drupal-dev-tools:drupal` audit command is installed, run it on the changed module.
 3. **Security-sensitive tasks:** if the `owasp-asvs` skill (security-tools plugin) is available, walk the relevant checklist sections (V1 encoding/sanitization at minimum). If it is not installed, verify manually: parameterized queries only, `Xss::filter()` on user-supplied markup, access checks on every new route, CSRF protection on state-changing GET routes.
 
