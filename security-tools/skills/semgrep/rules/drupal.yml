@@ -179,7 +179,13 @@ rules:
               }
       - pattern-not-inside: |
           function create(...) { ... }
-      - pattern: \Drupal::$METHOD(...)
+      # A literal `\Drupal::$METHOD(...)` pattern matches nothing: Semgrep's
+      # PHP parser does not match the single-segment fully-qualified class
+      # name. Bind the class to a metavariable and filter it instead.
+      - pattern: $DRUPAL::$METHOD(...)
+      - metavariable-regex:
+          metavariable: $DRUPAL
+          regex: ^\\?Drupal$
 
   - id: drupal-debug-output
     languages: [php]

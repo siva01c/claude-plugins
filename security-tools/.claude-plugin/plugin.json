@@ -1,7 +1,7 @@
 {
   "name": "security-tools",
   "description": "Security verification skills — OWASP ASVS v5.0 checklist mapped to Drupal 11 APIs and Semgrep SAST with custom Drupal rules for security code reviews",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": {
     "name": "Ludek Kvapil - siva01"
   }

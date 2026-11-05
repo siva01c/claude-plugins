@@ -1,0 +1,34 @@
+name: semgrep-rules
+
+# Validates the custom Semgrep rules of the security-tools plugin and runs
+# their `ruleid:` / `ok:` fixtures, so a rule that matches nothing fails here
+# instead of shipping.
+
+on:
+  pull_request:
+    paths:
+      - "security-tools/skills/semgrep/rules/**"
+      - ".github/workflows/semgrep-rules.yml"
+  push:
+    branches: [main]
+    paths:
+      - "security-tools/skills/semgrep/rules/**"
+      - ".github/workflows/semgrep-rules.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    container: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate rules
+        run: >-
+          semgrep --validate --metrics=off
+          --config security-tools/skills/semgrep/rules/drupal.yml
+          --config security-tools/skills/semgrep/rules/drupal-routing.yml
+          security-tools/skills/semgrep/rules
+      - name: Run rule fixtures
+        run: semgrep --test security-tools/skills/semgrep/rules
