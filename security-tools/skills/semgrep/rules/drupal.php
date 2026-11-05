@@ -128,6 +128,8 @@ class InjectedService {
     $user = \Drupal::currentUser();
     // ruleid: drupal-static-call-in-di-class
     \Drupal::service('logger.factory')->get('fixture')->notice('run');
+    // ruleid: drupal-static-call-in-di-class
+    $renderer = \drupal::service('renderer');
     // ok: drupal-static-call-in-di-class
     return $this->connection->select('users', 'u')->countQuery()->execute();
   }

@@ -13,7 +13,7 @@ A curated collection of [Claude Code](https://claude.com/claude-code) plugins fo
 | [drupal-dev-tools](drupal-dev-tools/) | 4.1.0 | `/drupal-dev-tools:drupal` audit command, skills: module development, security review |
 | [ddev-tools](ddev-tools/) | 1.0.0 | `drupal-ddev` agent, skill: DDEV operations for Drupal projects |
 | [git-tools](git-tools/) | 1.0.0 | Skill: git worktrees for parallel, conflict-free work |
-| [security-tools](security-tools/) | 1.1.0 | Skills: OWASP ASVS v5.0 checklist mapped to Drupal 11 APIs, Semgrep SAST with custom Drupal rules |
+| [security-tools](security-tools/) | 1.1.1 | Skills: OWASP ASVS v5.0 checklist mapped to Drupal 11 APIs, Semgrep SAST with custom Drupal rules |
 | [docker-tools](docker-tools/) | 1.0.0 | Skills: Docker Compose for Drupal stacks, Docker Model Runner for local AI models |
 | [cicd-tools](cicd-tools/) | 1.1.0 | Skills: GitLab CI and GitHub Actions pipelines for Drupal projects |
 | [workflow-tools](workflow-tools/) | 1.1.0 | Skills: phased feature/deploy workflows and a tiny-fix path, rigor scaled to risk |
@@ -285,7 +285,11 @@ If you encounter any issues or have questions:
 
 ## Changelog
 
-### 2.3 (Latest)
+### 2.3.1 (Latest)
+
+- **Fix `drupal-static-call-in-di-class`** (security-tools 1.1.1): the rule matched nothing, because Semgrep's PHP parser does not match a literal `\Drupal::` pattern; it now binds the class to a metavariable. `semgrep --test` passes for all rules, and a `semgrep-rules` GitHub workflow runs `--validate` and `--test` on every change to the rules.
+
+### 2.3
 
 - **New `security-tools:semgrep` skill** (security-tools 1.1.0): Semgrep SAST with `p/php`, `p/owasp-top-ten`, `p/secrets` and custom Drupal rules mapped to ASVS, triage verdicts per finding, rule fixtures for `semgrep --test`.
 - Optional Semgrep step in `feature-workflow` Phase 3 (workflow-tools 1.1.0) and in the `/drupal-dev-tools:drupal` audit (drupal-dev-tools 4.1.0).

@@ -160,7 +160,10 @@ rules:
       triage: >-
         True positive in services, controllers, forms and plugins. False
         positive in static methods and in classes Drupal instantiates without
-        the container (entity classes, some value objects).
+        the container (entity classes, some value objects). Also false
+        positive for an unqualified `Drupal::` call in a namespace that
+        defines its own `Drupal` class without `use Drupal;`: it does not
+        resolve to the global class.
       references:
         - https://www.drupal.org/docs/drupal-apis/services-and-dependency-injection
     patterns:
@@ -179,7 +182,14 @@ rules:
               }
       - pattern-not-inside: |
           function create(...) { ... }
-      - pattern: \Drupal::$METHOD(...)
+      # A literal `\Drupal::$METHOD(...)` pattern matches nothing: Semgrep's
+      # PHP parser does not match the single-segment fully-qualified class
+      # name. Bind the class to a metavariable and filter it instead.
+      - pattern: $DRUPAL::$METHOD(...)
+      - metavariable-regex:
+          metavariable: $DRUPAL
+          # PHP class names are case-insensitive: \drupal:: is the same class.
+          regex: (?i)^\\?drupal$
 
   - id: drupal-debug-output
     languages: [php]
