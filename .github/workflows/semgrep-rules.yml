@@ -21,14 +21,12 @@ permissions:
 jobs:
   rules:
     runs-on: ubuntu-latest
-    container: semgrep/semgrep
+    container: semgrep/semgrep:1.182.1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Validate rules
         run: >-
           semgrep --validate --metrics=off
-          --config security-tools/skills/semgrep/rules/drupal.yml
-          --config security-tools/skills/semgrep/rules/drupal-routing.yml
-          security-tools/skills/semgrep/rules
+          --config security-tools/skills/semgrep/rules/
       - name: Run rule fixtures
         run: semgrep --test security-tools/skills/semgrep/rules
