@@ -106,6 +106,45 @@ wait loops. From the runner they are reachable on `127.0.0.1:<mapped port>`.
 
 ---
 
+## Semgrep SAST with SARIF
+
+Semgrep runs in its own container image, so no PHP or Composer setup is
+needed. SARIF uploaded to code scanning shows each finding on the PR diff and
+under Security → Code scanning (public repos, or private ones with GitHub
+Advanced Security).
+
+```yaml
+  semgrep:
+    runs-on: ubuntu-latest
+    container: semgrep/semgrep
+    permissions:
+      contents: read
+      security-events: write   # upload-sarif needs it; keep it on this job only
+    steps:
+      - uses: actions/checkout@v4
+      - run: >-
+          semgrep scan --metrics=off --sarif --output semgrep.sarif
+          --config p/php --config p/owasp-top-ten --config p/secrets
+          --config .semgrep/drupal.yml --config .semgrep/drupal-routing.yml
+          web/modules/custom web/themes/custom
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()            # upload even when the scan step failed on findings
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+```
+
+- Copy the custom Drupal rules (the `security-tools` `semgrep` skill's
+  `rules/drupal.yml` and `rules/drupal-routing.yml`) into the project, here
+  `.semgrep/`, so CI does not depend on a local plugin path.
+- Add `--error` to fail the job on any finding; without it the job stays green
+  and code scanning carries the findings.
+- Fork PRs get a read-only token, so the upload step fails there — guard it
+  with `if: github.event.pull_request.head.repo.full_name == github.repository`
+  when the project takes outside contributions.
+
+---
+
 ## Deployment job
 
 ```yaml

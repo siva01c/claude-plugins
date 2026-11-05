@@ -1,0 +1,60 @@
+# Test fixture for rules/drupal-routing.yml, written as a *.routing.yml file.
+# Run with `semgrep --test rules/`: `ruleid:` marks a route the rule must
+# report, `ok:` a route it must not report.
+
+# ruleid: drupal-route-without-access-check
+fixture.no_requirements:
+  path: '/fixture/open'
+  defaults:
+    _controller: '\Drupal\fixture\Controller\OpenController::build'
+    _title: 'Open'
+
+# ruleid: drupal-route-without-access-check
+fixture.csrf_only:
+  path: '/fixture/toggle'
+  defaults:
+    _controller: '\Drupal\fixture\Controller\ToggleController::toggle'
+  requirements:
+    _csrf_token: 'TRUE'
+    _format: 'json'
+
+# ok: drupal-route-without-access-check
+fixture.permission:
+  path: '/admin/config/fixture'
+  defaults:
+    _form: '\Drupal\fixture\Form\SettingsForm'
+  requirements:
+    _permission: 'administer site configuration'
+
+# ok: drupal-route-without-access-check
+fixture.custom_access:
+  path: '/fixture/{node}/report'
+  defaults:
+    _controller: '\Drupal\fixture\Controller\ReportController::build'
+  requirements:
+    _custom_access: '\Drupal\fixture\Access\ReportAccess::access'
+    node: '\d+'
+
+# ok: drupal-route-without-access-check
+fixture.entity_access:
+  path: '/fixture/node/{node}'
+  defaults:
+    _entity_view: 'node.full'
+  requirements:
+    _entity_access: 'node.view'
+
+# ok: drupal-route-without-access-check
+fixture.public:
+  path: '/fixture/public'
+  defaults:
+    _controller: '\Drupal\fixture\Controller\PublicController::build'
+  requirements:
+    _access: 'TRUE'
+
+# ok: drupal-route-without-access-check
+fixture.logged_in:
+  path: '/fixture/me'
+  defaults:
+    _controller: '\Drupal\fixture\Controller\MeController::build'
+  requirements:
+    _user_is_logged_in: 'TRUE'

@@ -24,7 +24,7 @@
       "name": "drupal-dev-tools",
       "source": "./drupal-dev-tools",
       "description": "Drupal 11 toolkit — audit command and skills for module development and security review",
-      "version": "4.0.0",
+      "version": "4.1.0",
       "author": {
         "name": "Ludek Kvapil - siva01"
       }
@@ -50,8 +50,8 @@
     {
       "name": "security-tools",
       "source": "./security-tools",
-      "description": "Security verification skills — OWASP ASVS v5.0 checklist mapped to Drupal 11 APIs for security code reviews",
-      "version": "1.0.0",
+      "description": "Security verification skills — OWASP ASVS v5.0 checklist mapped to Drupal 11 APIs and Semgrep SAST with custom Drupal rules for security code reviews",
+      "version": "1.1.0",
       "author": {
         "name": "Ludek Kvapil - siva01"
       }
@@ -68,8 +68,8 @@
     {
       "name": "cicd-tools",
       "source": "./cicd-tools",
-      "description": "CI/CD pipeline skills for Drupal projects — GitLab CI and GitHub Actions authoring, testing, and drush-based deployment",
-      "version": "1.0.0",
+      "description": "CI/CD pipeline skills for Drupal projects — GitLab CI and GitHub Actions authoring, testing, Semgrep SAST with SARIF, and drush-based deployment",
+      "version": "1.1.0",
       "author": {
         "name": "Ludek Kvapil - siva01"
       }
@@ -78,7 +78,7 @@
       "name": "workflow-tools",
       "source": "./workflow-tools",
       "description": "Phased development workflows for Drupal projects — feature delivery, deployment, and tiny fixes with rigor scaled to risk",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Ludek Kvapil - siva01"
       }

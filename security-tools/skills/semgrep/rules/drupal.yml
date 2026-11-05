@@ -1,0 +1,218 @@
+# Custom Semgrep rules for Drupal 10/11 custom code (PHP).
+#
+# Every rule carries `metadata.asvs`: the OWASP ASVS v5.0 requirement IDs as
+# used in the security-tools `owasp-asvs` skill, so a finding can be reported
+# against the same checklist the review uses. `metadata.triage` says what to
+# check before calling a finding a true positive.
+#
+# Tests: rules/drupal.php holds `ruleid:` / `ok:` fixtures.
+#   semgrep --test rules/
+
+rules:
+  - id: drupal-sqli-concatenated-query
+    languages: [php]
+    severity: ERROR
+    message: >-
+      SQL built from concatenation or string interpolation is passed to
+      query()/db_query(). Use placeholders (`:name` with an arguments array)
+      or the query builder (select()/condition()).
+    metadata:
+      category: security
+      asvs: ["V1.1.4"]
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: MEDIUM
+      triage: >-
+        True positive when any concatenated or interpolated part can come from
+        a request, an entity field or config editable by users. False positive
+        when every part is a constant (a table name from a class constant).
+        Concatenation into a variable that is passed later is not detected:
+        follow `->query($sql)` calls by hand.
+      references:
+        - https://www.drupal.org/docs/drupal-apis/database-api/static-queries
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern: db_query($QUERY, ...)
+              - pattern: $DB->query($QUERY, ...)
+          - metavariable-pattern:
+              metavariable: $QUERY
+              pattern: $LEFT . $RIGHT
+      - patterns:
+          - pattern-either:
+              - pattern: db_query($QUERY, ...)
+              - pattern: $DB->query($QUERY, ...)
+          # A string with an interpolated variable, or a call such as
+          # sprintf() that takes a variable; a bare variable is not reported.
+          - metavariable-regex:
+              metavariable: $QUERY
+              regex: '(?s)^[^$].*\$[A-Za-z_{]'
+
+  - id: drupal-xss-markup-unescaped
+    languages: [php]
+    severity: WARNING
+    message: >-
+      A variable reaches `#markup`, which is rendered as HTML after only an
+      admin-level XSS filter. Use `#plain_text`, `$this->t()` with `@`/`%`
+      placeholders, or filter it explicitly with Xss::filter().
+    metadata:
+      category: security
+      asvs: ["V1.1.1", "V1.2.1"]
+      cwe: ["CWE-79: Improper Neutralization of Input During Web Page Generation"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: MEDIUM
+      triage: >-
+        True positive when the value can contain user input (request, entity
+        field, user-editable config). False positive when the variable holds
+        already rendered or sanitised markup (renderer output, a
+        MarkupInterface object). Needs context when the value is built in
+        another method.
+      references:
+        - https://www.drupal.org/docs/security-in-drupal/writing-secure-code-for-drupal
+    patterns:
+      - pattern-either:
+          - pattern: "[..., '#markup' => $VALUE, ...]"
+          - pattern: "$ELEMENT['#markup'] = $VALUE;"
+      - metavariable-pattern:
+          metavariable: $VALUE
+          patterns:
+            - pattern-regex: '\$[A-Za-z_]'
+            - pattern-not-inside: $THIS->t(...)
+            - pattern-not-inside: t(...)
+            - pattern-not-inside: $THIS->formatPlural(...)
+            - pattern-not-inside: new TranslatableMarkup(...)
+            - pattern-not-inside: Xss::filter(...)
+            - pattern-not-inside: Xss::filterAdmin(...)
+            - pattern-not-inside: Html::escape(...)
+            - pattern-not-inside: \Drupal\Component\Utility\Xss::filter(...)
+            - pattern-not-inside: \Drupal\Component\Utility\Xss::filterAdmin(...)
+            - pattern-not-inside: \Drupal\Component\Utility\Html::escape(...)
+
+  - id: drupal-xss-markup-create
+    languages: [php]
+    severity: WARNING
+    message: >-
+      Markup::create() marks a value as safe HTML and skips all escaping. Pass
+      it only markup that is constant or already filtered with Xss::filter() /
+      Xss::filterAdmin().
+    metadata:
+      category: security
+      asvs: ["V1.1.1", "V1.2.1"]
+      cwe: ["CWE-79: Improper Neutralization of Input During Web Page Generation"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: MEDIUM
+      triage: >-
+        True positive when the argument can contain user input. False positive
+        when it is renderer output or markup filtered earlier in the same
+        method. Needs context when it comes from another service.
+      references:
+        - https://api.drupal.org/api/drupal/core%21lib%21Drupal%21Core%21Render%21Markup.php/class/Markup
+    patterns:
+      - pattern-either:
+          - pattern: Markup::create($VALUE)
+          - pattern: \Drupal\Core\Render\Markup::create($VALUE)
+      - metavariable-pattern:
+          metavariable: $VALUE
+          patterns:
+            - pattern-regex: '\$[A-Za-z_]'
+            - pattern-not-inside: Xss::filter(...)
+            - pattern-not-inside: Xss::filterAdmin(...)
+            - pattern-not-inside: Html::escape(...)
+            - pattern-not-inside: \Drupal\Component\Utility\Xss::filter(...)
+            - pattern-not-inside: \Drupal\Component\Utility\Xss::filterAdmin(...)
+            - pattern-not-inside: \Drupal\Component\Utility\Html::escape(...)
+
+  - id: drupal-superglobal-access
+    languages: [php]
+    severity: WARNING
+    message: >-
+      Direct access to a PHP superglobal. Read input from the Symfony Request
+      (`$request->query`, `$request->request`, `$request->cookies`,
+      `$request->files`) and validate it server-side.
+    metadata:
+      category: security
+      asvs: ["V2.1.1"]
+      cwe: ["CWE-20: Improper Input Validation"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+      triage: >-
+        True positive in modules and themes. False positive only in code that
+        runs before Drupal boots (settings.php, a front controller) or in a
+        comment.
+      references:
+        - https://www.drupal.org/docs/drupal-apis/routing-system/using-parameters-in-routes
+    pattern-regex: '\$_(GET|POST|REQUEST|COOKIE|FILES)\b'
+
+  - id: drupal-static-call-in-di-class
+    languages: [php]
+    severity: INFO
+    message: >-
+      `\Drupal::$METHOD()` in a class that already takes dependencies through
+      its constructor or create(). Inject the service instead: static calls
+      hide dependencies from review and tests.
+    metadata:
+      category: maintainability
+      # Not an ASVS requirement: a design finding (dependency inversion, see
+      # quality-tools `solid`). It is reported so that hidden service access
+      # (current user, request, database) is visible during the security pass.
+      asvs: []
+      confidence: HIGH
+      triage: >-
+        True positive in services, controllers, forms and plugins. False
+        positive in static methods and in classes Drupal instantiates without
+        the container (entity classes, some value objects).
+      references:
+        - https://www.drupal.org/docs/drupal-apis/services-and-dependency-injection
+    patterns:
+      - pattern-either:
+          - pattern-inside: |
+              class $CLASS {
+                ...
+                function create(...) { ... }
+                ...
+              }
+          - pattern-inside: |
+              class $CLASS {
+                ...
+                function __construct(...) { ... }
+                ...
+              }
+      - pattern-not-inside: |
+          function create(...) { ... }
+      - pattern: \Drupal::$METHOD(...)
+
+  - id: drupal-debug-output
+    languages: [php]
+    severity: WARNING
+    message: >-
+      Leftover debug output. It leaks internal data to the browser or the
+      message area and must not reach production; log with the logger service
+      instead.
+    metadata:
+      category: security
+      asvs: ["V12.1.1", "V12.1.2"]
+      cwe: ["CWE-489: Active Debug Code"]
+      owasp: ["A05:2021 - Security Misconfiguration"]
+      confidence: HIGH
+      triage: >-
+        True positive outside tests and drush commands written for debugging.
+        print_r()/var_export() with TRUE as the second argument return a
+        string and are not reported.
+      references:
+        - https://www.drupal.org/project/devel
+    pattern-either:
+      - pattern: var_dump(...)
+      - pattern: var_export($DATA)
+      - pattern: print_r($DATA)
+      - pattern: debug_zval_dump(...)
+      - pattern: debug(...)
+      - pattern: dpm(...)
+      - pattern: dsm(...)
+      - pattern: dvm(...)
+      - pattern: dpr(...)
+      - pattern: kint(...)
+      - pattern: ksm(...)
+      - pattern: kpr(...)
+      - pattern: dump(...)
+      - pattern: dd(...)
+      - pattern: ddm(...)
