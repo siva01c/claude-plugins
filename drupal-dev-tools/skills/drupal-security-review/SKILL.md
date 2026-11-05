@@ -31,3 +31,7 @@ Use this skill to perform focused security reviews for Drupal 11 custom modules 
 rg "(var_dump|dpm\(|kint\()" web/modules/custom web/themes/custom
 rg "\$_(GET|POST|REQUEST)" web/modules/custom web/themes/custom
 ```
+
+For a deterministic scan with triage and ASVS mapping, use the
+`security-tools:semgrep` skill (Semgrep with custom Drupal rules) before the
+checklist above and review its findings first.

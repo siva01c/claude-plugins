@@ -1,7 +1,7 @@
 {
   "name": "drupal-dev-tools",
   "description": "Drupal 11 toolkit — audit command and skills for module development and security review",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "author": {
     "name": "Ludek Kvapil - siva01"
   }
