@@ -8,15 +8,20 @@ on:
   pull_request:
     paths:
       - "security-tools/skills/semgrep/rules/**"
+      - "security-tools/skills/semgrep/SKILL.md"
       - ".github/workflows/semgrep-rules.yml"
   push:
     branches: [main]
     paths:
       - "security-tools/skills/semgrep/rules/**"
+      - "security-tools/skills/semgrep/SKILL.md"
       - ".github/workflows/semgrep-rules.yml"
 
 permissions:
   contents: read
+
+env:
+  RULES: security-tools/skills/semgrep/rules
 
 jobs:
   rules:
@@ -25,8 +30,21 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Validate rules
-        run: >-
-          semgrep --validate --metrics=off
-          --config security-tools/skills/semgrep/rules/
+        run: semgrep --validate --metrics=off --config "$RULES/"
+      # `semgrep --test` passes for a rule without any fixture, so check that
+      # every rule id has at least one `ruleid:` line that must be reported.
+      - name: Every rule has a ruleid fixture
+        run: |
+          # Fixtures are every file that is not a rule file (*.yml). The
+          # container's grep is BusyBox: no --exclude, so collect them first.
+          fixtures="$(find "$RULES" -type f ! -name '*.yml' -exec cat {} +)"
+          missing=0
+          for id in $(sed -n 's/^  - id: *\([A-Za-z0-9_.-]*\).*/\1/p' "$RULES"/*.yml); do
+            if ! printf '%s\n' "$fixtures" | grep -qE "ruleid: *([A-Za-z0-9_.-]+, *)*$id([^A-Za-z0-9_.-]|$)"; then
+              echo "::error::rule $id has no 'ruleid:' fixture"
+              missing=1
+            fi
+          done
+          exit "$missing"
       - name: Run rule fixtures
-        run: semgrep --test security-tools/skills/semgrep/rules
+        run: semgrep --test --metrics=off "$RULES"
