@@ -1,0 +1,10 @@
+# Default phpstan configuration used by the quality-tools phpstan hook when the
+# project has no phpstan.neon, phpstan.neon.dist or phpstan.dist.neon of its own.
+#
+# The hook copies this file to vendor/phpstan-hook.neon in the project (vendor/
+# is visible both on the host and inside a DDEV container) and prepends
+# includes for phpstan-baseline.neon and, without phpstan/extension-installer,
+# for phpstan-drupal and the deprecation rules.
+parameters:
+	level: 5
+	reportUnmatchedIgnoredErrors: false
